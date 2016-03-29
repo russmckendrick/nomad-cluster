@@ -1,0 +1,59 @@
+---
+
+- name: "Provision our Nomad cluster in DigitalOcean"
+  hosts: localhost
+  connection: local
+  gather_facts: True
+
+  vars_files:
+    - group_vars/environment.yml
+    - group_vars/do.yml
+
+  roles:
+    - droplet
+
+- name: "Install Docker & Nomad on all the hosts in the"
+  hosts: nomadhosts
+  remote_user: root
+  gather_facts: False
+
+  vars_files:
+    - group_vars/environment.yml
+
+  roles:
+    - basics
+    - docker-install
+    - nomad-install
+
+- name: "Configure the Nomad master"
+  hosts: master
+  remote_user: root
+  gather_facts: True
+
+  vars_files:
+    - group_vars/environment.yml
+
+  roles:
+    - nomad-master
+
+- name: "Configure the Nomad minions"
+  hosts: minion
+  remote_user: root
+  gather_facts: True
+
+  vars_files:
+    - group_vars/environment.yml
+
+  roles:
+    - nomad-minion
+
+- name: "Finished"
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars_files:
+    - group_vars/dyn.yml
+
+  roles:
+    - fin

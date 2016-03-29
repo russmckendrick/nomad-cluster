@@ -1,0 +1,13 @@
+---
+
+- name: "Download the Nomad binary"
+  unarchive: src={{ nomad_url }} dest={{ nomad_dir }} copy=no
+
+- name: "Set permissions on Nomad binary"
+  file: path={{ nomad_dir }}/{{ nomad_bin }} mode="u+rx,g+rx,o+rwx"
+
+- name: "Create the config directory"
+  file: path=/usr/local/etc/nomad state=directory mode=0755
+
+- name: "Add the Nomad server config file"
+  template: src=upstart.nomad.j2 dest=/etc/init/nomad.conf

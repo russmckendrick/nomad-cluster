@@ -1,0 +1,10 @@
+---
+
+- include_vars: group_vars/dyn.yml
+
+- name: "Add the Nomad client config file"
+  template: src=client.hcl.j2 dest=/usr/local/etc/nomad/client.hcl
+
+- name: "Lauch Nomad"
+  command: start nomad
+  ignore_errors: true

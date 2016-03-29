@@ -1,0 +1,15 @@
+log_level = "DEBUG"
+data_dir = "/opt/nomad"
+enable_debug = true
+
+bind_addr = "0.0.0.0"
+
+server {
+    enabled = true
+    bootstrap_expect = 1
+}
+
+advertise {
+    rpc = "{{ nomad_host_master_int }}:4647"
+    serf = "{{ nomad_host_master_int }}:4648"
+}

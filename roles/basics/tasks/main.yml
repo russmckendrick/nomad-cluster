@@ -1,0 +1,7 @@
+---
+
+- name: "Install curl"
+  apt: pkg=curl update_cache=yes
+
+- name: "Install unzip"
+  apt: pkg=unzip update_cache=yes

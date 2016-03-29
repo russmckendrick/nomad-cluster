@@ -1,0 +1,10 @@
+---
+
+- include_vars: group_vars/dyn.yml
+
+- name: "Add the Nomad server config file"
+  template: src=server.hcl.j2 dest=/usr/local/etc/nomad/server.hcl
+
+- name: "Lauch Nomad"
+  command: start nomad
+  ignore_errors: true

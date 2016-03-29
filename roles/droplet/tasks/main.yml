@@ -1,0 +1,121 @@
+---
+
+### Make sure there is a key on the local host machine and thats its upload
+### to Digital Ocean
+
+- name: "Ensure ssh key exists for the user {{ ansible_user_id }}"
+  user:
+    name: '{{ ansible_user_id }}'
+    generate_ssh_key: yes
+    ssh_key_file: '.ssh/id_rsa'
+
+- name: "Check that {{ ansible_user_id }}'s key has been uploaded to DigitalOcean"
+  digital_ocean:
+    state: present
+    command: ssh
+    name: '{{ ssh_key_name }}'
+    ssh_pub_key: '{{ lookup("file", "~/.ssh/id_rsa.pub") }}'
+    api_token: '{{ do_api_token }}'
+  register: do_ssh_key
+
+### Launch the hosts
+
+- name: "Starting the first Nomad host"
+  digital_ocean:
+    state: present
+    command: droplet
+    name: '{{ droplet_name }}-master'
+    private_networking: yes
+    api_token: '{{ do_api_token }}'
+    size_id: '{{ size_id }}'
+    region_id: '{{ region_id }}'
+    image_id: '{{ image_id }}'
+    ssh_key_ids: '{{ do_ssh_key.ssh_key.id }}'
+    unique_name: 'yes'
+    wait_timeout: 500
+  register: nomad01
+
+- name: "Starting the second Nomad host"
+  digital_ocean:
+    state: present
+    command: droplet
+    name: '{{ droplet_name }}-minion-01'
+    private_networking: yes
+    api_token: '{{ do_api_token }}'
+    size_id: '{{ size_id }}'
+    region_id: '{{ region_id }}'
+    image_id: '{{ image_id }}'
+    ssh_key_ids: '{{ do_ssh_key.ssh_key.id }}'
+    unique_name: 'yes'
+    wait_timeout: 500
+  register: nomad02
+
+- name: "Starting the third Nomad host"
+  digital_ocean:
+    state: present
+    command: droplet
+    name: '{{ droplet_name }}-minion-02'
+    private_networking: yes
+    api_token: '{{ do_api_token }}'
+    size_id: '{{ size_id }}'
+    region_id: '{{ region_id }}'
+    image_id: '{{ image_id }}'
+    ssh_key_ids: '{{ do_ssh_key.ssh_key.id }}'
+    unique_name: 'yes'
+    wait_timeout: 500
+  register: nomad03
+
+### Get some data
+
+- name: debug
+  debug: var=nomad01
+
+- name: debug
+  debug: var=nomad02
+
+- name: debug
+  debug: var=nomad03
+
+### Create the host groups
+
+- name: "Adding the first host to the nomad host group"
+  add_host:
+   name: "{{nomad01.droplet.ip_address}}"
+   groups: "nomadhosts"
+  when: nomad01.droplet is defined
+
+- name: "Adding the second host to the nomad host group"
+  add_host:
+   name: "{{ nomad02.droplet.ip_address }}"
+   groups: "nomadhosts"
+  when: nomad02.droplet is defined
+
+- name: "Adding the third host to the nomad host group"
+  add_host:
+   name: "{{ nomad03.droplet.ip_address }}"
+   groups: "nomadhosts"
+  when: nomad03.droplet is defined
+
+- name: "Adding the first host to the master group"
+  add_host:
+   name: "{{nomad01.droplet.ip_address}}"
+   groups: "master"
+  when: nomad01.droplet is defined
+
+- name: "Adding the second host to the minion host group"
+  add_host:
+   name: "{{ nomad02.droplet.ip_address }}"
+   groups: "minion"
+  when: nomad02.droplet is defined
+
+- name: "Adding the third host to the minion host group"
+  add_host:
+   name: "{{ nomad03.droplet.ip_address }}"
+   groups: "minion"
+  when: nomad03.droplet is defined
+
+### Finally, spit out the internal IP addresses into a file
+
+- name: "Create the varible file with the internal IP addresses for use later"
+  template: src=dyn.yml.j2 dest=./group_vars/dyn.yml
+  delegate_to: localhost

@@ -1,0 +1,11 @@
+log_level = "DEBUG"
+data_dir = "/opt/nomad"
+enable_debug = true
+
+client {
+    enabled = true
+    servers = ["{{ nomad_host_master_int }}:4647"]
+    meta {
+        docker = "true"
+    }
+}
