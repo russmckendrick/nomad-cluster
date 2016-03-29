@@ -24,4 +24,6 @@ To run Ansible run;
 ansible-playbook -i hosts site.yml
 ```
 
-<script type="text/javascript" src="https://asciinema.org/a/40679.js" id="asciicast-40679" async></script>
+You can see an example of the playbook running below;
+
+[![asciicast](https://asciinema.org/a/40679.png)](https://asciinema.org/a/40679)
